@@ -1,0 +1,4 @@
+rootProject.name = 'demo-springtest'
+include 'inventory-service'
+include 'product-service'
+include 'review-service'

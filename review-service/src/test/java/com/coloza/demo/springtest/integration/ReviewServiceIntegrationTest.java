@@ -42,6 +42,14 @@ public class ReviewServiceIntegrationTest {
         return mongoTemplate;
     }
 
+    static String asJsonString(final Object obj) {
+        try {
+            return new ObjectMapper().writeValueAsString(obj);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Test
     @DisplayName("GET /review/1 - Found")
     @MongoDataFile(value = "sample.json", classType = Review.class, collectionName = "Reviews")
@@ -65,7 +73,7 @@ public class ReviewServiceIntegrationTest {
                 .andExpect(jsonPath("$.entries.length()", is(1)))
                 .andExpect(jsonPath("$.entries[0].username", is("user1")))
                 .andExpect(jsonPath("$.entries[0].review", is("This is a review")))
-                .andExpect(jsonPath("$.entries[0].date", is("2018-11-10T11:38:26.855+0000")));
+                .andExpect(jsonPath("$.entries[0].date", is("2018-11-10T11:38:26.855+00:00")));
     }
 
     @Test
@@ -132,17 +140,9 @@ public class ReviewServiceIntegrationTest {
                 .andExpect(jsonPath("$.entries.length()", is(2)))
                 .andExpect(jsonPath("$.entries[0].username", is("user1")))
                 .andExpect(jsonPath("$.entries[0].review", is("This is a review")))
-                .andExpect(jsonPath("$.entries[0].date", is("2018-11-10T11:38:26.855+0000")))
+                .andExpect(jsonPath("$.entries[0].date", is("2018-11-10T11:38:26.855+00:00")))
                 .andExpect(jsonPath("$.entries[1].username", is("test-user")))
                 .andExpect(jsonPath("$.entries[1].review", is("Great product")))
                 .andExpect(jsonPath("$.entries[1].date", any(String.class)));
-    }
-
-    static String asJsonString(final Object obj) {
-        try {
-            return new ObjectMapper().writeValueAsString(obj);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 }

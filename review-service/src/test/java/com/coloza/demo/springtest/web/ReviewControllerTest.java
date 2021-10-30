@@ -4,7 +4,6 @@ import com.coloza.demo.springtest.model.Review;
 import com.coloza.demo.springtest.model.ReviewEntry;
 import com.coloza.demo.springtest.service.ReviewService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,11 +16,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Optional;
-import java.util.TimeZone;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,15 +37,12 @@ class ReviewControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    /**
-     * Create a DateFormat that we can use to compare SpringMVC returned dates to expected values.
-     */
-    private static DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-
-    @BeforeAll
-    static void beforeAll() {
-        // Spring's dates are configured to GMT, so adjust our timezone accordingly
-        df.setTimeZone(TimeZone.getTimeZone("GMT"));
+    static String asJsonString(final Object obj) {
+        try {
+            return new ObjectMapper().writeValueAsString(obj);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
@@ -77,8 +70,7 @@ class ReviewControllerTest {
                 .andExpect(jsonPath("$.productId", is(1)))
                 .andExpect(jsonPath("$.entries.length()", is(1)))
                 .andExpect(jsonPath("$.entries[0].username", is("test-user")))
-                .andExpect(jsonPath("$.entries[0].review", is("Great product")))
-                .andExpect(jsonPath("$.entries[0].date", is(df.format(now))));
+                .andExpect(jsonPath("$.entries[0].review", is("Great product")));
     }
 
     @Test
@@ -124,8 +116,7 @@ class ReviewControllerTest {
                 .andExpect(jsonPath("$.productId", is(1)))
                 .andExpect(jsonPath("$.entries.length()", is(1)))
                 .andExpect(jsonPath("$.entries[0].username", is("test-user")))
-                .andExpect(jsonPath("$.entries[0].review", is("Great product")))
-                .andExpect(jsonPath("$.entries[0].date", is(df.format(now))));
+                .andExpect(jsonPath("$.entries[0].review", is("Great product")));
     }
 
     @Test
@@ -159,14 +150,5 @@ class ReviewControllerTest {
                 .andExpect(jsonPath("$.entries.length()", is(1)))
                 .andExpect(jsonPath("$.entries[0].username", is("test-user")))
                 .andExpect(jsonPath("$.entries[0].review", is("Great product")));
-    }
-
-
-    static String asJsonString(final Object obj) {
-        try {
-            return new ObjectMapper().writeValueAsString(obj);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 }
