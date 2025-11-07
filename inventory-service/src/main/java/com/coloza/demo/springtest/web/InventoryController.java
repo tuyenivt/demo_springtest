@@ -2,8 +2,8 @@ package com.coloza.demo.springtest.web;
 
 import com.coloza.demo.springtest.model.PurchaseRecord;
 import com.coloza.demo.springtest.service.InventoryService;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,20 +11,14 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+@Slf4j
 @RestController
+@RequiredArgsConstructor
 public class InventoryController {
-
-    private static final Logger logger = LogManager.getLogger(InventoryController.class);
-
     private final InventoryService inventoryService;
-
-    public InventoryController(InventoryService inventoryService) {
-        this.inventoryService = inventoryService;
-    }
 
     @GetMapping("/inventory/{id}")
     public ResponseEntity<?> getInventoryRecord(@PathVariable Integer id) {
-
         return inventoryService.getInventoryRecord(id)
                 .map(inventoryRecord -> {
                     try {
@@ -41,7 +35,7 @@ public class InventoryController {
 
     @PostMapping("/inventory/purchase-record")
     public ResponseEntity<?> addPurchaseRecord(@RequestBody PurchaseRecord purchaseRecord) {
-        logger.info("Creating new purchase record: {}", purchaseRecord);
+        log.info("Creating new purchase record: {}", purchaseRecord);
 
         return inventoryService.purchaseProduct(purchaseRecord.getProductId(), purchaseRecord.getQuantityPurchased())
                 .map(inventoryRecord -> {
@@ -56,5 +50,4 @@ public class InventoryController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
-
 }

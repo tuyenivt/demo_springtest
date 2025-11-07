@@ -7,14 +7,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.is;
@@ -22,7 +20,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest
 @TestPropertySource(locations = "classpath:test.properties")
 @AutoConfigureMockMvc
@@ -81,8 +78,8 @@ class InventoryServiceIntegrationTest {
     void testCreatePurchaseRecord() throws Exception {
         // Execute the POST request
         mockMvc.perform(post("/inventory/purchase-record")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(new PurchaseRecord(1, 5))))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(new PurchaseRecord(1, 5))))
 
                 // Validate the response code and content type
                 .andExpect(status().isOk())

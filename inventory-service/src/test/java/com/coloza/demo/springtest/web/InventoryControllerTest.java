@@ -6,14 +6,12 @@ import com.coloza.demo.springtest.service.InventoryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;
@@ -24,11 +22,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 class InventoryControllerTest {
-    @MockBean
+    @MockitoBean
     private InventoryService service;
 
     @Autowired
@@ -37,7 +34,7 @@ class InventoryControllerTest {
     @Test
     @DisplayName("GET /inventory/1 - Success")
     void testGetInventoryByIdSuccess() throws Exception {
-        // Setup our mocked service
+        // Set up our mocked service
         InventoryRecord mockRecord = new InventoryRecord(1, 10,
                 "Product 1", "Great Products");
         doReturn(Optional.of(mockRecord)).when(service).getInventoryRecord(1);
@@ -62,7 +59,7 @@ class InventoryControllerTest {
     @Test
     @DisplayName("GET /inventory/2 - Not Found")
     void testGetInventoryByIdNotFound() throws Exception {
-        // Setup our mocked service
+        // Set up our mocked service
         doReturn(Optional.empty()).when(service).getInventoryRecord(2);
 
         // Execute the GET request
@@ -82,8 +79,8 @@ class InventoryControllerTest {
 
 
         mockMvc.perform(post("/inventory/purchase-record")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(new PurchaseRecord(1, 5))))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(new PurchaseRecord(1, 5))))
 
                 // Validate the response code and content type
                 .andExpect(status().isOk())

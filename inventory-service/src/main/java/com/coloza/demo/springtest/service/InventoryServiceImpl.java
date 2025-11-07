@@ -12,7 +12,7 @@ import java.util.Optional;
 @Service
 public class InventoryServiceImpl implements InventoryService {
 
-    @Value("${inventorymanager.baseUrl}")
+    @Value("${inventoryManager.baseUrl}")
     private String baseUrl;
 
     // Create a RestTemplate to use to communicate with the Inventory Manager Service
@@ -22,7 +22,7 @@ public class InventoryServiceImpl implements InventoryService {
     public Optional<InventoryRecord> getInventoryRecord(Integer productId) {
         try {
             // Get the inventory record for the specified product ID
-            return Optional.of(restTemplate.getForObject(baseUrl + "/" + productId, InventoryRecord.class));
+            return Optional.ofNullable(restTemplate.getForObject(baseUrl + "/" + productId, InventoryRecord.class));
         } catch (HttpClientErrorException e) {
             // An exception occurred, so return Optional.empty()
             return Optional.empty();
@@ -32,9 +32,8 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public Optional<InventoryRecord> purchaseProduct(Integer productId, Integer quantity) {
         try {
-            return Optional.of(restTemplate.postForObject(baseUrl + "/" + productId + "/purchaseRecord",
-                    new PurchaseRecord(productId, quantity),
-                    InventoryRecord.class));
+            return Optional.ofNullable(restTemplate.postForObject(baseUrl + "/" + productId + "/purchaseRecord",
+                    new PurchaseRecord(productId, quantity), InventoryRecord.class));
         } catch (HttpClientErrorException e) {
             return Optional.empty();
         }
