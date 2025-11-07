@@ -3,8 +3,8 @@ package com.coloza.demo.springtest.web;
 import com.coloza.demo.springtest.model.Review;
 import com.coloza.demo.springtest.model.ReviewEntry;
 import com.coloza.demo.springtest.service.ReviewService;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,16 +19,11 @@ import java.util.Optional;
 /**
  * A RestController that manages product reviews.
  */
+@Slf4j
 @RestController
+@RequiredArgsConstructor
 public class ReviewController {
-
-    private static final Logger logger = LogManager.getLogger(ReviewController.class);
-
-    private ReviewService service;
-
-    public ReviewController(ReviewService service) {
-        this.service = service;
-    }
+    private final ReviewService service;
 
     /**
      * Returns the review with the specified ID.
@@ -61,12 +56,10 @@ public class ReviewController {
      * @return A list of reviews.
      */
     @GetMapping("/reviews")
-    public Iterable<Review> getReviews(@RequestParam(value = "productId", required = false) Optional<String> productId) {
-        return productId.map(pid -> {
-            return service.findByProductId(Integer.valueOf(pid))
-                    .map(Arrays::asList)
-                    .orElseGet(ArrayList::new);
-        }).orElse(service.findAll());
+    public Iterable<Review> getReviews(@RequestParam(value = "productId", required = false) String productId) {
+        return Optional.ofNullable(productId).map(pid -> service.findByProductId(Integer.valueOf(pid))
+                .map(Arrays::asList)
+                .orElseGet(ArrayList::new)).orElse(service.findAll());
     }
 
     /**
@@ -77,14 +70,14 @@ public class ReviewController {
      */
     @PostMapping("/review")
     public ResponseEntity<Review> createReview(@RequestBody Review review) {
-        logger.info("Creating new review for product id: {}, {}", review.getProductId(), review);
+        log.info("Creating new review for product id: {}, {}", review.getProductId(), review);
 
         // Set the date for any entries in the review to now since we're creating the review now
         review.getEntries().forEach(entry -> entry.setDate(new Date()));
 
         // Save the review to the database
-        Review newReview = service.save(review);
-        logger.info("Saved review: {}", newReview);
+        var newReview = service.save(review);
+        log.info("Saved review: {}", newReview);
 
         try {
             // Build a created response
@@ -106,18 +99,18 @@ public class ReviewController {
      */
     @PostMapping("/review/{productId}/entry")
     public ResponseEntity<Review> addEntryToReview(@PathVariable Integer productId, @RequestBody ReviewEntry entry) {
-        logger.info("Add review entry for product id: {}, {}", productId, entry);
+        log.info("Add review entry for product id: {}, {}", productId, entry);
 
         // Retrieve the review for the specified productId; if there is no review, create a new one
-        Review review = service.findByProductId(productId).orElseGet(() -> new Review(productId));
+        var review = service.findByProductId(productId).orElseGet(() -> Review.builder().productId(productId).build());
 
         // Add this new entry to the review
         entry.setDate(new Date());
         review.getEntries().add(entry);
 
         // Save the review
-        Review updatedReview = service.save(review);
-        logger.info("Updated review: {}", updatedReview);
+        var updatedReview = service.save(review);
+        log.info("Updated review: {}", updatedReview);
 
         try {
             // Build a created response
@@ -139,11 +132,10 @@ public class ReviewController {
      */
     @DeleteMapping("/review/{id}")
     public ResponseEntity<?> deleteReview(@PathVariable String id) {
-
-        logger.info("Deleting review with ID {}", id);
+        log.info("Deleting review with ID {}", id);
 
         // Get the existing product
-        Optional<Review> existingReview = service.findById(id);
+        var existingReview = service.findById(id);
 
         // Delete the review if it exists in the database
         return existingReview.map(review -> {
@@ -151,5 +143,4 @@ public class ReviewController {
             return ResponseEntity.ok().build();
         }).orElse(ResponseEntity.notFound().build());
     }
-
 }

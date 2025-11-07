@@ -14,7 +14,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.any;
@@ -23,10 +22,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith({SpringExtension.class, MongoSpringExtension.class})
+@ExtendWith({MongoSpringExtension.class})
 @SpringBootTest
 @AutoConfigureMockMvc
-public class ReviewServiceIntegrationTest {
+class ReviewServiceIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
@@ -92,13 +91,13 @@ public class ReviewServiceIntegrationTest {
     @DisplayName("POST /review - Success")
     @MongoDataFile(value = "sample.json", classType = Review.class, collectionName = "Reviews")
     void testCreateReview() throws Exception {
-        // Setup mocked service
-        Review postReview = new Review(1);
-        postReview.getEntries().add(new ReviewEntry("test-user", "Great product"));
+        // Set up mocked service
+        var postReview = Review.builder().productId(1).build();
+        postReview.getEntries().add(ReviewEntry.builder().username("test-user").review("Great product").build());
 
         mockMvc.perform(post("/review")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(postReview)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(postReview)))
 
                 // Validate the response code and content type
                 .andExpect(status().isCreated())
@@ -122,12 +121,12 @@ public class ReviewServiceIntegrationTest {
     @DisplayName("POST /review/{productId}/entry")
     @MongoDataFile(value = "sample.json", classType = Review.class, collectionName = "Reviews")
     void testAddEntryToReview() throws Exception {
-        // Setup mocked service
-        ReviewEntry reviewEntry = new ReviewEntry("test-user", "Great product");
+        // Set up mocked service
+        var reviewEntry = ReviewEntry.builder().username("test-user").review("Great product").build();
 
         mockMvc.perform(post("/review/{productId}/entry", 1)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(reviewEntry)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(reviewEntry)))
 
                 // Validate the response code and content type
                 .andExpect(status().isOk())

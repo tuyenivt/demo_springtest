@@ -6,14 +6,12 @@ import com.coloza.demo.springtest.service.ReviewService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Date;
@@ -26,12 +24,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 class ReviewControllerTest {
 
-    @MockBean
+    @MockitoBean
     private ReviewService service;
 
     @Autowired
@@ -48,9 +45,9 @@ class ReviewControllerTest {
     @Test
     @DisplayName("GET /review/reviewId - Found")
     void testGetReviewByIdFound() throws Exception {
-        // Setup our mocked service
-        Review mockReview = new Review("reviewId", 1, 1);
-        Date now = new Date();
+        // Set up our mocked service
+        var mockReview = Review.builder().id("reviewId").productId(1).version(1).build();
+        var now = new Date();
         mockReview.getEntries().add(new ReviewEntry("test-user", now, "Great product"));
         doReturn(Optional.of(mockReview)).when(service).findById("reviewId");
 
@@ -76,7 +73,7 @@ class ReviewControllerTest {
     @Test
     @DisplayName("GET /review/reviewId - Not Found")
     void testGetReviewByIdNotFound() throws Exception {
-        // Setup our mocked service
+        // Set up our mocked service
         doReturn(Optional.empty()).when(service).findById("reviewId");
 
         // Execute the GET request
@@ -89,12 +86,12 @@ class ReviewControllerTest {
     @Test
     @DisplayName("POST /review - Success")
     void testCreateReview() throws Exception {
-        // Setup mocked service
-        Date now = new Date();
-        Review postReview = new Review(1);
+        // Set up mocked service
+        var now = new Date();
+        var postReview = Review.builder().productId(1).build();
         postReview.getEntries().add(new ReviewEntry("test-user", now, "Great product"));
 
-        Review mockReview = new Review("reviewId", 1, 1);
+        var mockReview = Review.builder().id("reviewId").productId(1).version(1).build();
         mockReview.getEntries().add(new ReviewEntry("test-user", now, "Great product"));
 
         doReturn(mockReview).when(service).save(any());
@@ -122,11 +119,11 @@ class ReviewControllerTest {
     @Test
     @DisplayName("POST /review/{productId}/entry")
     void testAddEntryToReview() throws Exception {
-        // Setup mocked service
-        Date now = new Date();
-        ReviewEntry reviewEntry = new ReviewEntry("test-user", now, "Great product");
-        Review mockReview = new Review("1", 1, 1);
-        Review returnedReview = new Review("1", 1, 2);
+        // Set up mocked service
+        var now = new Date();
+        var reviewEntry = new ReviewEntry("test-user", now, "Great product");
+        var mockReview = Review.builder().id("1").productId(1).version(1).build();
+        var returnedReview = Review.builder().id("1").productId(1).version(2).build();
         returnedReview.getEntries().add(reviewEntry);
 
         // Handle lookup
