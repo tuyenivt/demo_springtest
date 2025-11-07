@@ -1,24 +1,20 @@
 package com.coloza.demo.springtest.repository;
 
 import com.coloza.demo.springtest.model.Product;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Repository
 public class ProductRepositoryImpl implements ProductRepository {
-
-    private static final Logger logger = LogManager.getLogger(ProductRepositoryImpl.class);
-
     private final JdbcTemplate jdbcTemplate;
     private final SimpleJdbcInsert simpleJdbcInsert;
 
@@ -34,17 +30,15 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public Optional<Product> findById(Integer id) {
         try {
-            Product product = jdbcTemplate.queryForObject("SELECT * FROM products WHERE id = ?",
+            var product = jdbcTemplate.queryForObject("SELECT * FROM products WHERE id = ?",
                     new Object[]{id},
-                    (rs, rowNum) -> {
-                        Product p = new Product();
-                        p.setId(rs.getInt("id"));
-                        p.setName(rs.getString("name"));
-                        p.setQuantity(rs.getInt("quantity"));
-                        p.setVersion(rs.getInt("version"));
-                        return p;
-                    });
-            return Optional.of(product);
+                    (rs, rowNum) -> Product.builder()
+                            .id(rs.getInt("id"))
+                            .name(rs.getString("name"))
+                            .quantity(rs.getInt("quantity"))
+                            .version(rs.getInt("version"))
+                            .build());
+            return Optional.ofNullable(product);
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
@@ -53,14 +47,12 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public List<Product> findAll() {
         return jdbcTemplate.query("SELECT * FROM products",
-                (rs, rowNumber) -> {
-                    Product product = new Product();
-                    product.setId(rs.getInt("id"));
-                    product.setName(rs.getString("name"));
-                    product.setQuantity(rs.getInt("quantity"));
-                    product.setVersion(rs.getInt("version"));
-                    return product;
-                });
+                (rs, rowNumber) -> Product.builder()
+                        .id(rs.getInt("id"))
+                        .name(rs.getString("name"))
+                        .quantity(rs.getInt("quantity"))
+                        .version(rs.getInt("version"))
+                        .build());
     }
 
     @Override
@@ -75,15 +67,16 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public Product save(Product product) {
         // Build the product parameters we want to save
-        Map<String, Object> parameters = new HashMap<>(1);
-        parameters.put("name", product.getName());
-        parameters.put("quantity", product.getQuantity());
-        parameters.put("version", product.getVersion());
+        var parameters = Map.of(
+                "name", product.getName(),
+                "quantity", product.getQuantity(),
+                "version", product.getVersion()
+        );
 
         // Execute the query and get the generated key
-        Number newId = simpleJdbcInsert.executeAndReturnKey(parameters);
+        var newId = simpleJdbcInsert.executeAndReturnKey(parameters);
 
-        logger.info("Inserting product into database, generated key is: {}", newId);
+        log.info("Inserting product into database, generated key is: {}", newId);
 
         // Update the product's ID with the new key
         product.setId((Integer) newId);

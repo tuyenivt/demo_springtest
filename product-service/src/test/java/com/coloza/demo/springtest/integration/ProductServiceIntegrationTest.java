@@ -14,7 +14,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 import javax.sql.DataSource;
@@ -24,7 +23,7 @@ import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith({DBUnitExtension.class, SpringExtension.class})
+@ExtendWith({DBUnitExtension.class})
 @SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
@@ -77,12 +76,12 @@ class ProductServiceIntegrationTest {
     @DisplayName("POST /product - Success")
     @DataSet("products.yml")
     void testCreateProduct() throws Exception {
-        // Setup product to create
-        Product postProduct = new Product("Product Name", 10);
+        // Set up product to create
+        var postProduct = Product.builder().name("Product Name").quantity(10).build();
 
         mockMvc.perform(post("/product")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(postProduct)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(postProduct)))
 
                 // Validate the response code and content type
                 .andExpect(status().isCreated())
@@ -103,13 +102,13 @@ class ProductServiceIntegrationTest {
     @DisplayName("PUT /product/2 - Success")
     @DataSet("products.yml")
     void testProductPutSuccess() throws Exception {
-        // Setup product to update
-        Product putProduct = new Product("Product 2 Updated", 10);
+        // Set up product to update
+        var putProduct = Product.builder().name("Product 2 Updated").quantity(10).build();
 
         mockMvc.perform(put("/product/{id}", 2)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.IF_MATCH, 2)
-                .content(asJsonString(putProduct)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.IF_MATCH, 2)
+                        .content(asJsonString(putProduct)))
 
                 // Validate the response code and content type
                 .andExpect(status().isOk())
@@ -130,13 +129,13 @@ class ProductServiceIntegrationTest {
     @DisplayName("PUT /product/1 - Version Mismatch")
     @DataSet("products.yml")
     void testProductPutVersionMismatch() throws Exception {
-        // Setup product to update
-        Product putProduct = new Product("Product Name", 10);
+        // Set up product to update
+        var putProduct = Product.builder().name("Product Name").quantity(10).build();
 
         mockMvc.perform(put("/product/{id}", 1)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.IF_MATCH, 7)
-                .content(asJsonString(putProduct)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.IF_MATCH, 7)
+                        .content(asJsonString(putProduct)))
 
                 // Validate the response code and content type
                 .andExpect(status().isConflict());
@@ -146,13 +145,13 @@ class ProductServiceIntegrationTest {
     @DisplayName("PUT /product/99 - Not Found")
     @DataSet("products.yml")
     void testProductPutNotFound() throws Exception {
-        // Setup product to update
-        Product putProduct = new Product("Product Name", 10);
+        // Set up product to update
+        var putProduct = Product.builder().name("Product Name").quantity(10).build();
 
         mockMvc.perform(put("/product/{id}", 99)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.IF_MATCH, 1)
-                .content(asJsonString(putProduct)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.IF_MATCH, 1)
+                        .content(asJsonString(putProduct)))
 
                 // Validate the response code and content type
                 .andExpect(status().isNotFound());

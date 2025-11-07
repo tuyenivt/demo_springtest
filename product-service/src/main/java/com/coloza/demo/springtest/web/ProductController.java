@@ -2,26 +2,21 @@ package com.coloza.demo.springtest.web;
 
 import com.coloza.demo.springtest.model.Product;
 import com.coloza.demo.springtest.service.ProductService;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Optional;
 
+@Slf4j
 @RestController
+@RequiredArgsConstructor
 public class ProductController {
 
-    private static final Logger logger = LogManager.getLogger(ProductController.class);
-
     private final ProductService productService;
-
-    public ProductController(ProductService productService) {
-        this.productService = productService;
-    }
 
     /**
      * Returns the product with the specified ID.
@@ -65,10 +60,10 @@ public class ProductController {
      */
     @PostMapping("/product")
     public ResponseEntity<Product> createProduct(@RequestBody Product product) {
-        logger.info("Creating new product with name: {}, quantity: {}", product.getName(), product.getQuantity());
+        log.info("Creating new product with name: {}, quantity: {}", product.getName(), product.getQuantity());
 
         // Create the new product
-        Product newProduct = productService.save(product);
+        var newProduct = productService.save(product);
 
         try {
             // Build a created response
@@ -96,16 +91,15 @@ public class ProductController {
     public ResponseEntity<?> updateProduct(@RequestBody Product product,
                                            @PathVariable Integer id,
                                            @RequestHeader("If-Match") Integer ifMatch) {
-        logger.info("Updating product with id: {}, name: {}, quantity: {}",
+        log.info("Updating product with id: {}, name: {}, quantity: {}",
                 id, product.getName(), product.getQuantity());
 
         // Get the existing product
-        Optional<Product> existingProduct = productService.findById(id);
+        var existingProduct = productService.findById(id);
 
         return existingProduct.map(p -> {
-            // Compare the etags
-            logger.info("Product with ID: " + id + " has a version of " + p.getVersion()
-                    + ". Update is for If-Match: " + ifMatch);
+            // Compare the eTags
+            log.info("Product with ID: {} has a version of {}. Update is for If-Match: {}", id, p.getVersion(), ifMatch);
             if (!p.getVersion().equals(ifMatch)) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).build();
             }
@@ -115,10 +109,7 @@ public class ProductController {
             p.setQuantity(product.getQuantity());
             p.setVersion(p.getVersion() + 1);
 
-            logger.info("Updating product with ID: " + p.getId()
-                    + " -> name=" + p.getName()
-                    + ", quantity=" + p.getQuantity()
-                    + ", version=" + p.getVersion());
+            log.info("Updating product with ID: {} -> name={}, quantity={}, version={}", p.getId(), p.getName(), p.getQuantity(), p.getVersion());
 
             try {
                 // Update the product and return an ok response
@@ -143,17 +134,17 @@ public class ProductController {
      *
      * @param id The ID of the product to delete.
      * @return A ResponseEntity with one of the following status codes:
-     * 200 OK if the delete was successful
+     * 200 OK if the deletion was successful
      * 404 Not Found if a product with the specified ID is not found
      * 500 Internal Service Error if an error occurs during deletion
      */
     @DeleteMapping("/product/{id}")
     public ResponseEntity<?> deleteProduct(@PathVariable Integer id) {
 
-        logger.info("Deleting product with ID {}", id);
+        log.info("Deleting product with ID {}", id);
 
         // Get the existing product
-        Optional<Product> existingProduct = productService.findById(id);
+        var existingProduct = productService.findById(id);
 
         return existingProduct.map(p -> {
             if (productService.delete(p.getId())) {
