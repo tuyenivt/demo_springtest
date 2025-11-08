@@ -12,6 +12,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -35,9 +36,8 @@ class ReviewServiceTest {
     @DisplayName("Test findById Success")
     void testFindByIdSuccess() {
         // Set up our mock
-        var mockReview = Review.builder().id("reviewId").productId(1).version(1).build();
-        var now = new Date();
-        mockReview.getEntries().add(new ReviewEntry("test-user", now, "Great product"));
+        var mockReviewEntry = new ReviewEntry("test-user", new Date(), "Great product");
+        var mockReview = Review.builder().id("reviewId").productId(1).version(1).entries(List.of(mockReviewEntry)).build();
         doReturn(Optional.of(mockReview)).when(repository).findById("reviewId");
 
         // Execute the service call

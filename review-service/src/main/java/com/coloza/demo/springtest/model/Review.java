@@ -28,11 +28,13 @@ public class Review {
     /**
      * The version of the review, which is an increasing number starting with 1.
      */
+    @Builder.Default
     private Integer version = 1;
 
     /**
      * A list of review entries - these contain user reviews of the product.
      */
+    @Builder.Default
     @Setter(AccessLevel.NONE)
     private List<ReviewEntry> entries = new ArrayList<>();
 }

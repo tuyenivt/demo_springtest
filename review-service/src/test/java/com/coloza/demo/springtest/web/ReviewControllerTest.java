@@ -15,6 +15,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.is;
@@ -46,9 +47,8 @@ class ReviewControllerTest {
     @DisplayName("GET /review/reviewId - Found")
     void testGetReviewByIdFound() throws Exception {
         // Set up our mocked service
-        var mockReview = Review.builder().id("reviewId").productId(1).version(1).build();
-        var now = new Date();
-        mockReview.getEntries().add(new ReviewEntry("test-user", now, "Great product"));
+        var mockReviewEntry = new ReviewEntry("test-user", new Date(), "Great product");
+        var mockReview = Review.builder().id("reviewId").productId(1).version(1).entries(List.of(mockReviewEntry)).build();
         doReturn(Optional.of(mockReview)).when(service).findById("reviewId");
 
         // Execute the GET request
@@ -87,18 +87,17 @@ class ReviewControllerTest {
     @DisplayName("POST /review - Success")
     void testCreateReview() throws Exception {
         // Set up mocked service
-        var now = new Date();
-        var postReview = Review.builder().productId(1).build();
-        postReview.getEntries().add(new ReviewEntry("test-user", now, "Great product"));
+        var postReviewEntry = new ReviewEntry("test-user", new Date(), "Great product");
+        var postReview = Review.builder().productId(1).entries(List.of(postReviewEntry)).build();
 
-        var mockReview = Review.builder().id("reviewId").productId(1).version(1).build();
-        mockReview.getEntries().add(new ReviewEntry("test-user", now, "Great product"));
+        var mockReviewEntry = new ReviewEntry("test-user", new Date(), "Great product");
+        var mockReview = Review.builder().id("reviewId").productId(1).version(1).entries(List.of(mockReviewEntry)).build();
 
         doReturn(mockReview).when(service).save(any());
 
         mockMvc.perform(post("/review")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(mockReview)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(postReview)))
 
                 // Validate the response code and content type
                 .andExpect(status().isCreated())
@@ -120,11 +119,9 @@ class ReviewControllerTest {
     @DisplayName("POST /review/{productId}/entry")
     void testAddEntryToReview() throws Exception {
         // Set up mocked service
-        var now = new Date();
-        var reviewEntry = new ReviewEntry("test-user", now, "Great product");
+        var mockReviewEntry = new ReviewEntry("test-user", new Date(), "Great product");
         var mockReview = Review.builder().id("1").productId(1).version(1).build();
-        var returnedReview = Review.builder().id("1").productId(1).version(2).build();
-        returnedReview.getEntries().add(reviewEntry);
+        var returnedReview = Review.builder().id("1").productId(1).version(2).entries(List.of(mockReviewEntry)).build();
 
         // Handle lookup
         doReturn(Optional.of(mockReview)).when(service).findByProductId(1);
@@ -133,8 +130,8 @@ class ReviewControllerTest {
         doReturn(returnedReview).when(service).save(any());
 
         mockMvc.perform(post("/review/{productId}/entry", 1)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(reviewEntry)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(mockReviewEntry)))
 
                 // Validate the response code and content type
                 .andExpect(status().isOk())
