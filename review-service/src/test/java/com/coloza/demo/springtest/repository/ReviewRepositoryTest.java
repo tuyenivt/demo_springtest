@@ -8,16 +8,31 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
-@DataMongoTest
+@Testcontainers
+@SpringBootTest
 class ReviewRepositoryTest {
+    @Container
+    static MongoDBContainer mongo = new MongoDBContainer("mongo:8.2");
+
+    @DynamicPropertySource
+    static void mongoProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.data.mongodb.uri", mongo::getReplicaSetUrl);
+    }
+
     @Autowired
     private MongoTemplate mongoTemplate;
 
@@ -88,8 +103,8 @@ class ReviewRepositoryTest {
     @Test
     void testSave() {
         // Create a test Review
-        var review = Review.builder().productId(10).version(1).build();
-        review.getEntries().add(new ReviewEntry("test-user", new Date(), "This is a review"));
+        var reviewEntry = new ReviewEntry("test-user", new Date(), "This is a review");
+        var review = Review.builder().productId(10).version(1).entries(List.of(reviewEntry)).build();
 
         // Persist the review to MongoDB
         var savedReview = repository.save(review);
